@@ -48,20 +48,15 @@ if(OPENNI_FOUND)
 endif(OPENNI_FOUND)
 
 include_directories(include include/kfusion/cuda/ src src/cuda)
-
-set(__has_cuda OFF)
-check_cuda(__has_cuda)
+include_directories(${OpenCV_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
 
 set(__lib_type STATIC)
 if (${ARGV1} MATCHES "SHARED|STATIC")
     set(__lib_type ${ARGV1})
 endif()
 
-if (__has_cuda)
-    cuda_add_library(${module_name} ${__lib_type} ${Source_srcs} ${Source_cuda_srcs} )
-else()
-    add_library(${module_name} ${__lib_type} ${Source_srcs})
-endif()
+
+CUDA_ADD_LIBRARY(${module_name} STATIC ${Source_srcs} ${Source_cuda_srcs} )
 
 if(MSVC)
     set_target_properties(${module_name} PROPERTIES DEFINE_SYMBOL KFUSION_API_EXPORTS)
@@ -84,10 +79,6 @@ install(TARGETS ${module_name}
 
 install(DIRECTORY include/ DESTINATION include/ FILES_MATCHING PATTERN "*.h*")
 
-target_link_libraries(kfusion ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${OpenCV_LIBS})
+target_link_libraries(${module_name} ${CUDA_LIBRARIES} ${OpenCV_LIBS})
 
 MESSAGE("OpenNI FOUND = ${OPENNI_FOUND}")
-
-if (OPENNI_FOUND)
-    target_link_libraries(kfusion ${OPENNI_LIBRARY})
-endif(OPENNI_FOUND)
